@@ -4,6 +4,9 @@ import urllib.parse
 import json
 
 
+__version__ = "0.01"
+
+
 class _Curl(curl.Curl):
     """Returns a pycurl.Curl() with serveral settings."""
 
