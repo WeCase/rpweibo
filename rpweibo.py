@@ -20,24 +20,6 @@ class _Curl(curl.Curl):
         self.payload = payload
         return payload
 
-    def get(self, url="", params=None):
-        "Ship a GET request for a specified URL, capture the response."
-        if params:
-            params_list = []
-
-            for key, value in params.items():
-                if isinstance(value, list) or isinstance(value, tuple):
-                    for i in value:
-                        params_list.append("%s=%s" % (key, urllib.parse.quote_plus(i)))
-                else:
-                    params_list.append("%s=%s" % (key, urllib.parse.quote_plus(value)))
-
-            params_str = "&".join(params_list)
-            url += "?" + params_str
-
-        self.set_option(pycurl.HTTPGET, 1)
-        return self.__request(url)
-
     def post_binary(self, cgi, params):
         "Ship a POST request, treats bytes in params as the binary data."
         postdata = []
