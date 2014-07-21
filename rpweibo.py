@@ -162,10 +162,10 @@ class Weibo():
             return self._request(self.HTTP_POST, api, kwargs)
 
     def api(self, api):
-        return WeiboTimeline(self, api)
+        return WeiboAPI(self, api)
 
 
-class WeiboTimeline():
+class WeiboAPI():
 
     def __init__(self, weibo, api):
         self._weibo = weibo
