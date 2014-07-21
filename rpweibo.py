@@ -96,6 +96,15 @@ class Application():
         self.redirect_uri = redirect_uri
 
 
+class getable_dict(dict):
+
+    def __init__(self, dic):
+        super().__init__(dic)
+
+    def __getattr__(self, attr):
+        return self[attr]
+
+
 class Weibo():
 
     API = "https://api.weibo.com/2/%s.json"
@@ -137,7 +146,7 @@ class Weibo():
             result_json = json.loads(result)
             if "error_code" in result_json.keys():
                 raise CallerError(result_json["error_code"], result_json["error"])
-            return result_json
+            return getable_dict(result_json)
         except (TypeError, ValueError):
             if status_code != 200:
                 raise CallerError(status_code, "Unknown Error")
