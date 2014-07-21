@@ -161,21 +161,21 @@ class Weibo():
         else:
             return self._request(self.HTTP_POST, api, kwargs)
 
-    def timeline(self, timeline):
-        return WeiboTimeline(self, timeline)
+    def api(self, api):
+        return WeiboTimeline(self, api)
 
 
 class WeiboTimeline():
 
-    def __init__(self, weibo, timeline):
+    def __init__(self, weibo, api):
         self._weibo = weibo
-        self._timeline = timeline
+        self._api = api
 
     def get(self, **kwargs):
-        return self._weibo.get(self._timeline, **kwargs)
+        return self._weibo.get(self._api, **kwargs)
 
     def post(self, **kwargs):
-        return self._weibo.post(self._timeline, **kwargs)
+        return self._weibo.post(self._api, **kwargs)
 
 class AccessTokenAuthenticator():
 
