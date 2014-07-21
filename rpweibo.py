@@ -115,11 +115,16 @@ class Weibo():
     def __init__(self, application):
         self.application = application
         self._access_token = ""
+        self._authorize_code = ""
 
     def auth(self, authenticator):
         access_token = authenticator.auth(self.application)
         if access_token:
             self._access_token = access_token
+            try:
+                self._authorize_code = authenticator.authorize_code
+            except AttributeError:
+                pass
         else:
             return False
 
@@ -127,7 +132,16 @@ class Weibo():
         if not self._access_token:
             raise NotAuthorized
 
-        kwargs["access_token"] = self._access_token
+        # hack for https://github.com/WeCase/WeCase/issues/119
+        if (api == "statuses/user_timeline" and self._authorize_code):
+            if "uid" in kwargs and "screen_name" not in kwargs:
+                kwargs["screen_name"] = self.api("users/show").get(uid=kwargs["uid"]).get("screen_name")
+                del kwargs["uid"]
+            kwargs["source"] = self.application.app_key
+            kwargs["access_token"] = self._authorize_code
+        else:
+            kwargs["access_token"] = self._access_token
+
         request_url = self.API % api
 
         curl = _Curl()
@@ -207,6 +221,7 @@ class UserPassAutheticator():
     def __init__(self, username, password):
         self._username = username
         self._password = password
+        self.authorize_code = ""
 
     def _request_authorize_code(self, application):
         oauth2 = self.OAUTH2_PARAMETER
@@ -231,6 +246,7 @@ class UserPassAutheticator():
             raise AuthorizeFailed("Invalid Application() or wrong username/password.")
 
         authorize_code = redirect_url.split("=")[1]
+        self.authorize_code = authorize_code
         return authorize_code
 
     def _request_access_token(self, application, authorize_code):
