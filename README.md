@@ -55,10 +55,6 @@ cURL + Python Weibo Wrapper.
 
 ### Error Handling
 
-    # handle all API errors
-    try:
-        tweets = weibo.api("statuses/user_timeline).get().statuses
-
     try:
         tweets = weibo.api("statuses/user_timeline).get().statuses
     except rpweibo.RemoteError:
