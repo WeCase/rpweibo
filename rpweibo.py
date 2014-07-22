@@ -144,7 +144,7 @@ class Weibo():
         else:
             return False
 
-    def _request(self, action, api, kwargs):
+    def __request(self, action, api, kwargs):
         if not self._access_token:
             raise NotAuthorized
 
@@ -185,7 +185,7 @@ class Weibo():
                 raise APIError(status_code, "Unknown Error")
             raise ResultCorrupted
 
-    def request(self, action, api, kwargs):
+    def _request(self, action, api, kwargs):
         exception = None
 
         delay = 1
@@ -202,7 +202,7 @@ class Weibo():
                 delay = 5
 
             try:
-                return self._request(action, api, kwargs)
+                return self.__request(action, api, kwargs)
             except APIError as e:
                 exception = e
                 if e.error_code in self.UNREASONABLE_ERRORS or exception.error_code <= 10014:
