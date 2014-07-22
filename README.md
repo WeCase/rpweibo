@@ -69,7 +69,7 @@ weibo.api("statuses/update").post("Hello, world!")
 
 ```python
 try:
-    tweets = weibo.api("statuses/user_timeline).get().statuses
+    tweets = weibo.api("statuses/user_timeline").get().statuses
 except rpweibo.RemoteError:
     # handle API errors likely cause by remote server
     print("Something wrong with the server")
