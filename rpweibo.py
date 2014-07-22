@@ -2,9 +2,18 @@ import curl
 import pycurl
 import urllib.parse
 import json
+import itertools
+import time
 
 
 __version__ = "0.01"
+
+g_retry = -1
+
+
+def set_retry(times):
+    global g_retry
+    g_retry = int(times)
 
 
 class _Curl(curl.Curl):
@@ -179,7 +188,19 @@ class Weibo():
     def request(self, action, api, kwargs):
         exception = None
 
-        for retry in range(4):
+        delay = 1
+        for retry in itertools.count():
+            if retry == g_retry:
+                break
+
+            if retry != 0:
+                time.sleep(delay)
+
+            if retry > 3:
+                delay = 3
+            elif retry > 5:
+                delay = 5
+
             try:
                 return self._request(action, api, kwargs)
             except APIError as e:
