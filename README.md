@@ -61,7 +61,7 @@ tweets = weibo.api("statuses/user_timeline").get().statuses
 for tweet in tweets:
     print(tweets.text)
 
-weibo.api("statuses/update").post("Hello, world!")
+weibo.api("statuses/update").post(status="Hello, world!")
 ```
 
 ### Error Handling
