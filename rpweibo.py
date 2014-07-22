@@ -54,11 +54,11 @@ class NetworkError(RequestError):
 class APIError(RequestError):
 
     def __init__(self, error_code, error_message):
-        self.error_code = str(error_code)
+        self.error_code = int(error_code)
         self.error_message = str(error_message).strip()
 
     def __str__(self):
-        return "%s: %s" % (self.error_code, self.error_message)
+        return "%d: %s" % (self.error_code, self.error_message)
 
     def __repr__(self):
         return self.__str__()
@@ -112,6 +112,13 @@ class Weibo():
     HTTP_POST = 2
     HTTP_UPLOAD = 3
 
+    # if you find out more, add the error code to the tuple
+    UNREASONABLE_ERRORS = (
+        10003,  # Remote service error
+        10011,  # RPC error
+        21321,  # Applications over the unaudited use restrictions
+    )
+
     def __init__(self, application):
         self.application = application
         self._access_token = ""
@@ -162,12 +169,29 @@ class Weibo():
                 result_json = {}
             assert isinstance(result_json, dict)
             if "error_code" in result_json.keys():
-                raise CallerError(result_json["error_code"], result_json["error"])
+                raise APIError(result_json["error_code"], result_json["error"])
             return getable_dict(result_json)
         except (TypeError, ValueError):
             if status_code != 200:
-                raise CallerError(status_code, "Unknown Error")
+                raise APIError(status_code, "Unknown Error")
             raise ResultCorrupted
+
+    def request(self, action, api, kwargs):
+        exception = None
+
+        for retry in range(4):
+            try:
+                return self._request(action, api, kwargs)
+            except APIError as e:
+                exception = e
+                if e.error_code in self.UNREASONABLE_ERRORS or exception.error_code <= 10014:
+                    pass
+                else:
+                    raise CallerError(exception.error_code, exception.error_message)
+            except ResultCorrupted:
+                pass
+
+        raise exception
 
     def get(self, api, **kwargs):
         return self._request(self.HTTP_GET, api, kwargs)
