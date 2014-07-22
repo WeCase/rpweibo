@@ -57,7 +57,7 @@ weibo.post("statuses/update", status="Hello, world!")
 ##### Object Style
 
 ```python
-tweets = weibo.api("statuses/user_timeline).get().statuses
+tweets = weibo.api("statuses/user_timeline").get().statuses
 for tweet in tweets:
     print(tweets.text)
 
