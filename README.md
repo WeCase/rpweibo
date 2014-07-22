@@ -17,7 +17,6 @@ sudo python3 setup.py install
 ```python
 import rpweibo
 
-# initialize a Application
 example_app = rpweibo.Application(APP_KEY, APP_SECRET, REDIRECT_URI)
 weibo = rpweibo.Weibo(example_app)
 ```
