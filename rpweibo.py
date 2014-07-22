@@ -190,6 +190,8 @@ class Weibo():
                     raise CallerError(exception.error_code, exception.error_message)
             except ResultCorrupted:
                 pass
+            except pycurl.error:
+                pass
 
         raise exception
 
