@@ -213,7 +213,10 @@ class Weibo():
             except pycurl.error:
                 pass
 
-        raise exception
+        if isinstance(exception, pycurl.error):
+            raise NetworkError
+        else:
+            raise exception
 
     def get(self, api, **kwargs):
         return self._request(self.HTTP_GET, api, kwargs)
