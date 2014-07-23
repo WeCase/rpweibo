@@ -243,6 +243,7 @@ class WeiboAPI():
     def post(self, **kwargs):
         return self._weibo.post(self._api, **kwargs)
 
+
 class AccessTokenAuthenticator():
 
     def __init__(self, access_token):
