@@ -1,5 +1,6 @@
 import curl
 import pycurl
+from io import BytesIO
 import urllib.parse
 import json
 import itertools
@@ -24,10 +25,19 @@ class _Curl(curl.Curl):
         self.set_option(pycurl.SSL_VERIFYPEER, True)
         self.set_option(pycurl.ENCODING, "")  # accept all encodings
 
+        # workaround buggy pycurl versions before Dec 2013
+        self.payload = None
+        self.payload_io = BytesIO()
+        self.set_option(pycurl.WRITEFUNCTION, self.payload_io.write)
+
+        def header_callback(x):
+            self.hdr += x.decode("ascii")
+        self.set_option(pycurl.HEADERFUNCTION, header_callback)
+
     def __request(self, relative_url=None):
-        payload = super().__request(relative_url).decode("UTF-8")
-        self.payload = payload
-        return payload
+        super().__request(relative_url)
+        self.payload = self.payload_io.getvalue().decode("UTF-8")
+        return self.payload
 
     def get(self, url="", params=None):
         "Ship a GET request for a specified URL, capture the response."
