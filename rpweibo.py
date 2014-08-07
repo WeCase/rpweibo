@@ -183,7 +183,7 @@ class Weibo():
 
         status_code = curl.get_info(pycurl.RESPONSE_CODE)
         try:
-            result_json = json.loads(result)
+            result_json = json.loads(result, object_hook=getable_dict)
             if not isinstance(result_json, dict):
                 return result_json
             if "error_code" in result_json.keys():
