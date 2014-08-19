@@ -49,7 +49,7 @@ weibo.auth(authenticator)
 ```python
 tweets = weibo.get("statuses/user_timeline")["statuses"]
 for tweet in tweets:
-    print(tweets["text"])
+    print(tweet["text"])
 
 weibo.post("statuses/update", status="Hello, world!")
 ```
@@ -59,7 +59,7 @@ weibo.post("statuses/update", status="Hello, world!")
 ```python
 tweets = weibo.api("statuses/user_timeline").get().statuses
 for tweet in tweets:
-    print(tweets.text)
+    print(tweet.text)
 
 weibo.api("statuses/update").post(status="Hello, world!")
 ```
