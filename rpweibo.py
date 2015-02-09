@@ -138,12 +138,12 @@ class Weibo():
         21321,  # Applications over the unaudited use restrictions
     )
 
-    PRIVILEGED_APIS = (
-        "statuses/user_timeline",
-        "users/show",
-        "users/domain_show",
-        "users/counts",
-    )
+    PRIVILEGED_APIS = {
+        "statuses/user_timeline": {"identifier_required": True},
+        "users/show": {"identifier_required": True},
+        "users/domain_show": {"identifier_required": False},
+        "users/counts": {"identifier_required": True},
+    }
 
     def __init__(self, application):
         self.application = application
@@ -166,7 +166,9 @@ class Weibo():
             raise NotAuthorized
 
         # hack for https://github.com/WeCase/WeCase/issues/119
-        if (privileged and self._authorize_code and api in self.PRIVILEGED_APIS):
+        if (privileged and api in self.PRIVILEGED_APIS and self._authorize_code and
+            (not self.PRIVILEGED_APIS[api]["identifier_required"] or
+             (self.PRIVILEGED_APIS[api]["identifier_required"] and (("uid" in kwargs) or ("screen_name" in kwargs))))):
             if "uid" in kwargs and "screen_name" not in kwargs:
                 screen_name = self.__request(self.HTTP_GET, "users/show", {"uid": kwargs["uid"]}, privileged=False).get("screen_name")
                 kwargs["screen_name"] = screen_name
