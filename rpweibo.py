@@ -31,7 +31,11 @@ class _Curl(curl.Curl):
         self.set_option(pycurl.WRITEFUNCTION, self.payload_io.write)
 
         def header_callback(x):
-            self.hdr += x.decode("ascii")
+            if isinstance(x, str):
+                # workaround buggy pycurl versions
+                self.hdr += x
+            else:
+                self.hdr += x.decode("ascii")
         self.set_option(pycurl.HEADERFUNCTION, header_callback)
 
     def __request(self, relative_url=None):
