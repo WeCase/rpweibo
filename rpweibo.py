@@ -336,7 +336,11 @@ class UserPassAutheticator():
         }
 
         curl = _Curl()
-        result = curl.post(self.ACCESS_TOKEN_URL, access_token_parameter)
+        try:
+            result = curl.post(self.ACCESS_TOKEN_URL, access_token_parameter)
+        except pycurl.error:
+            raise NetworkError
+
         return json.loads(result)["access_token"]
 
     def auth(self, application):
