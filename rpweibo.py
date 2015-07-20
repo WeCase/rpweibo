@@ -38,6 +38,13 @@ class _Curl(curl.Curl):
                 self.hdr += x.decode("ascii")
         self.set_option(pycurl.HEADERFUNCTION, header_callback)
 
+        # use the only one secure cipher that Sina supports
+        if "OpenSSL" in pycurl.version_info()[5]:
+            self.set_option(pycurl.SSL_CIPHER_LIST, "ECDHE-RSA-AES256-SHA")
+        else:
+            # Assume GnuTLS. what? You've built libcurl with NSS? Hum...
+            self.set_option(pycurl.SSL_CIPHER_LIST, "PFS")
+
     def __request(self, relative_url=None):
         super().__request(relative_url)
         self.payload = self.payload_io.getvalue().decode("UTF-8")
