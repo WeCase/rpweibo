@@ -353,3 +353,39 @@ class UserPassAutheticator():
     def auth(self, application):
         authorize_code = self._request_authorize_code(application)
         return self._request_access_token(application, authorize_code)
+
+
+class ManualAutheticator():
+
+    WEIBO_DOMAIN = "api.weibo.com"
+    AUTHORIZE_URL = "https://%s/oauth2/authorize" % WEIBO_DOMAIN
+    ACCESS_TOKEN_URL = "https://%s/oauth2/access_token" % WEIBO_DOMAIN
+
+    def __init__(self):
+        pass
+
+    def _request_authorize_code(self, application):
+        print("Please open %s?client_id=%s&redirect_uri=%s in the web browser" % (self.AUTHORIZE_URL, application.app_key, application.redirect_uri))
+        authorize_code = input("Authorize Code: ").strip()
+        return authorize_code
+
+    def _request_access_token(self, application, authorize_code):
+        access_token_parameter = {
+            'client_id': application.app_key,
+            'client_secret': application.app_secret,
+            'grant_type': 'authorization_code',
+            'code': authorize_code,
+            'redirect_uri': application.redirect_uri
+        }
+
+        curl = _Curl()
+        try:
+            result = curl.post(self.ACCESS_TOKEN_URL, access_token_parameter)
+        except pycurl.error:
+            raise NetworkError
+
+        return json.loads(result)["access_token"]
+
+    def auth(self, application):
+        authorize_code = self._request_authorize_code(application)
+        return self._request_access_token(application, authorize_code)
