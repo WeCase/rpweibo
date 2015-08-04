@@ -433,7 +433,10 @@ class UserPassAutheticator():
         except pycurl.error:
             raise NetworkError
 
-        return json.loads(result)["access_token"]
+        try:
+            return json.loads(result)["access_token"]
+        except KeyError:
+            raise AuthorizeError
 
     def auth(self, application):
         authorize_code = self._request_authorize_code(application)
