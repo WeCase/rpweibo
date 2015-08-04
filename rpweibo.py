@@ -2,6 +2,8 @@ import curl
 import pycurl
 from io import BytesIO
 import urllib.parse
+import base64
+import rsa
 import json
 import itertools
 import time
@@ -286,11 +288,41 @@ class AccessTokenAuthenticator():
 
 class UserPassAutheticator():
 
-    WEIBO_DOMAIN = "api.weibo.com"
+    PRELOGIN_PARAMETER = {
+        'entry': 'openapi',
+        'callback': 'sinaSSOController.preloginCallBack',
+        'rsakt': 'mod',
+        'client': 'ssologin.js(v1.4.15)',
+        'su': '',
+    }
+
+    LOGIN_PARAMETER = {
+        'entry': 'openapi',
+        'gateway': '1',
+        'from': '',
+        'savestate': '0',
+        'useticket': '1',
+        'vsnf': '1',
+        'vsnval': '',
+        'door': '',
+        'scope': '',  # scope of the application
+        'su': '',
+        'service': 'miniblog',
+        'servertime': '',
+        'nonce': '',
+        'pwencode': 'rsa2',
+        'rsakv': '',
+        'sp': '',
+        'encoding': 'UTF-8',
+        'cdult': '2',
+        'domain': 'weibo.com',
+        'prelt': '1609',
+        'returntype': 'TEXT',
+    }
 
     OAUTH2_PARAMETER = {
         'response_type': 'code',
-        'action': 'submit',
+        'action': 'login',
         'isLoginSina': 0,
         'from': '',
         'regCallback': '',
@@ -299,8 +331,10 @@ class UserPassAutheticator():
         'withOfficalFlag': 0
     }
 
-    AUTHORIZE_URL = "https://%s/oauth2/authorize" % WEIBO_DOMAIN
-    ACCESS_TOKEN_URL = "https://%s/oauth2/access_token" % WEIBO_DOMAIN
+    PRELOGIN_URL = "https://login.sina.com.cn/sso/prelogin.php"
+    LOGIN_URL = "https://login.sina.com.cn/sso/login.php?client=%s"
+    AUTHORIZE_URL = "https://api.weibo.com/oauth2/authorize"
+    ACCESS_TOKEN_URL = "https://api.weibo.com/oauth2/access_token"
 
     def __init__(self, username, password):
         self._username = username
@@ -308,11 +342,62 @@ class UserPassAutheticator():
         self.authorize_code = ""
 
     def _request_authorize_code(self, application):
+        # Encode the username to a URL-encoded string.
+        # Then, calculate its base64, we need it later
+        username_encoded = urllib.parse.quote(self._username)
+        username_encoded = username_encoded.encode("UTF-8")  # convert from UTF-8 to byte string
+        username_encoded = base64.b64encode(username_encoded)
+
+        # First, we need to request prelogin.php for some necessary parameters.
+        prelogin = self.PRELOGIN_PARAMETER
+        prelogin['su'] = username_encoded
+
+        curl = _Curl()
+        try:
+            prelogin_result = curl.get(self.PRELOGIN_URL, prelogin)
+        except pycurl.error:
+            raise NetworkError
+
+        # The result is a piece of JavaScript code, in the format of
+        # sinaSSOController.preloginCallBack({json here})
+        prelogin_json = prelogin_result.replace("sinaSSOController.preloginCallBack(", "")[0:-1]
+        prelogin_json = json.loads(prelogin_json)
+
+        # Second, we request login.php to request for a authenticate ticket
+        login = self.LOGIN_PARAMETER
+        login['su'] = username_encoded
+        login['servertime'] = prelogin_json['servertime']
+        login['nonce'] = prelogin_json['nonce']
+        login['rsakv'] = prelogin_json['rsakv']
+
+        # One more thing, we need to encrypt the password with extra token
+        # using RSA-1024 public key which the server has sent us.
+        rsa_pubkey_bignum = int(prelogin_json['pubkey'], 16)  # the public key is a big number in Hex
+        rsa_pubkey = rsa.PublicKey(rsa_pubkey_bignum, 65537)  # RFC requires e == 65537 for RSA algorithm
+
+        plain_msg = "%s\t%s\n%s" % (prelogin_json['servertime'], prelogin_json['nonce'], self._password)
+        plain_msg = plain_msg.encode('UTF-8')  # to byte string
+        cipher_msg = rsa.encrypt(plain_msg, rsa_pubkey)
+        cipher_msg = base64.b16encode(cipher_msg)  # to Hex
+
+        login['sp'] = cipher_msg
+
+        curl = _Curl()
+        try:
+            login_result = curl.post(self.LOGIN_URL % "ssologin.js(v1.4.15)", login)
+        except pycurl.error:
+            raise NetworkError
+
+        # the result is a JSON string
+        # if success, Sina will give us a ticket for this authorized session
+        login_json = json.loads(login_result)
+        if "ticket" not in login_json:
+            raise AuthorizeFailed(str(login_json))
+
         oauth2 = self.OAUTH2_PARAMETER
+        oauth2['ticket'] = login_json['ticket']  # it's what all we need
         oauth2['client_id'] = application.app_key
         oauth2['redirect_uri'] = application.redirect_uri
-        oauth2['userId'] = self._username
-        oauth2['passwd'] = self._password
 
         curl = _Curl()
         curl.set_option(pycurl.FOLLOWLOCATION, False)  # don't follow redirect
@@ -322,7 +407,7 @@ class UserPassAutheticator():
         except pycurl.error:
             raise NetworkError
 
-        # After post the OAUTH2 information, if success,
+        # After post the OAuth2 information, if success,
         # Sina will return "302 Moved Temporarily", the target is "http://redirect_uri/?code=xxxxxx",
         # xxxxxx is the authorize code.
         redirect_url = curl.get_info(pycurl.REDIRECT_URL)

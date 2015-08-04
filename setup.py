@@ -12,6 +12,7 @@ kw = {
     "url": 'https://github.com/WeCase/rpweibo',
     "download_url": 'https://github.com/WeCase/rpweibo',
     "py_modules": ['rpweibo'],
+    "requires": ["rsa (>=3.1)"],
     "classifiers": [
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
