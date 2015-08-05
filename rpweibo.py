@@ -345,7 +345,7 @@ class UserPassAutheticator():
         # Encode the username to a URL-encoded string.
         # Then, calculate its base64, we need it later
         username_encoded = urllib.parse.quote(self._username)
-        username_encoded = username_encoded.encode("UTF-8")  # convert from UTF-8 to byte string
+        username_encoded = username_encoded.encode("UTF-8")  # convert to UTF-8-encoded byte string
         username_encoded = base64.b64encode(username_encoded)
 
         # First, we need to request prelogin.php for some necessary parameters.
