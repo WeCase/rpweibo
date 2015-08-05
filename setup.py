@@ -1,6 +1,11 @@
-from distutils.core import setup
+import sys
+
+if sys.version_info[0] < 3:
+    sys.stderr.write("Python (<= 2) is not supported!\n")
+    sys.exit(1)
 
 import rpweibo
+from distutils.core import setup
 
 kw = {
     "name": 'rpweibo',
@@ -24,5 +29,6 @@ kw = {
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
 }
+
 
 setup(**kw)
