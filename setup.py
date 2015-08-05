@@ -19,7 +19,7 @@ kw = {
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python 3',
+        'Programming Language :: Python :: 3 :: Only',
         'Topic :: Internet',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
