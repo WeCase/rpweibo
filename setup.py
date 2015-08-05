@@ -5,7 +5,13 @@ if sys.version_info[0] < 3:
     sys.exit(1)
 
 import rpweibo
-from distutils.core import setup
+
+try:
+    from setuptools import setup
+    use_setuptools = True
+except ImportError:
+    from distutils.core import setup
+    use_setuptools = False
 
 kw = {
     "name": 'rpweibo',
@@ -29,6 +35,12 @@ kw = {
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
 }
+
+if use_setuptools:
+    requires = kw.pop("requires")
+    for idx, val in enumerate(requires):
+        requires[idx] = val.replace("(", "").replace(")", "")
+    kw["install_requires"] = requires
 
 
 setup(**kw)
