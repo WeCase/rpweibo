@@ -9,7 +9,7 @@ import itertools
 import time
 
 
-__version__ = "0.02"
+__version__ = "0.02.1"
 
 g_retry = -1
 
