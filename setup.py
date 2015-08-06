@@ -22,6 +22,7 @@ kw = {
     "author_email": 'biergaizi@member.fsf.org',
     "url": 'https://github.com/WeCase/rpweibo',
     "download_url": 'https://github.com/WeCase/rpweibo',
+    "license": 'LGPLv3+',
     "py_modules": ['rpweibo'],
     "requires": ["pycurl (>= 7.19.3)", "rsa (>=3.1)"],
     "classifiers": [
