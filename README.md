@@ -10,6 +10,12 @@ cURL + Python Weibo Wrapper.
 sudo python3 setup.py install
 ```
 
+or
+
+```bash
+sudo pip install rpweibo
+```
+
 ## Usage
 
 ### Initialize
