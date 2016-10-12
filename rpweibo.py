@@ -205,6 +205,8 @@ class Weibo():
             result = curl.post_binary(request_url, kwargs)
 
         status_code = curl.get_info(pycurl.RESPONSE_CODE)
+        curl.close()
+
         try:
             result_json = json.loads(result, object_hook=getable_dict)
             if not isinstance(result_json, dict):
@@ -438,6 +440,8 @@ class UserPassAutheticator():
             result = curl.post(self.ACCESS_TOKEN_URL, access_token_parameter)
         except pycurl.error:
             raise NetworkError
+        finally:
+            curl.close()
 
         try:
             return json.loads(result)["access_token"]
