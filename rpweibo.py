@@ -357,6 +357,8 @@ class UserPassAutheticator():
             prelogin_result = curl.get(self.PRELOGIN_URL, prelogin)
         except pycurl.error:
             raise NetworkError
+        finally:
+            curl.close()
 
         # The result is a piece of JavaScript code, in the format of
         # sinaSSOController.preloginCallBack({json here})
@@ -387,6 +389,8 @@ class UserPassAutheticator():
             login_result = curl.post(self.LOGIN_URL % "ssologin.js(v1.4.15)", login)
         except pycurl.error:
             raise NetworkError
+        finally:
+            curl.close()
 
         # the result is a JSON string
         # if success, Sina will give us a ticket for this authorized session
@@ -403,14 +407,16 @@ class UserPassAutheticator():
         curl.set_option(pycurl.FOLLOWLOCATION, False)  # don't follow redirect
         curl.set_option(pycurl.REFERER, self.AUTHORIZE_URL)  # required for auth
         try:
+            # After post the OAuth2 information, if success,
+            # Sina will return "302 Moved Temporarily", the target is "http://redirect_uri/?code=xxxxxx",
+            # xxxxxx is the authorize code.
             curl.post(self.AUTHORIZE_URL, oauth2)
+            redirect_url = curl.get_info(pycurl.REDIRECT_URL)
         except pycurl.error:
             raise NetworkError
+        finally:
+            curl.close()
 
-        # After post the OAuth2 information, if success,
-        # Sina will return "302 Moved Temporarily", the target is "http://redirect_uri/?code=xxxxxx",
-        # xxxxxx is the authorize code.
-        redirect_url = curl.get_info(pycurl.REDIRECT_URL)
         if not redirect_url:
             raise AuthorizeFailed("Invalid Application() or wrong username/password.")
 
