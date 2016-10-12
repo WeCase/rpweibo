@@ -477,6 +477,8 @@ class ManualAutheticator():
             result = curl.post(self.ACCESS_TOKEN_URL, access_token_parameter)
         except pycurl.error:
             raise NetworkError
+        finally:
+            curl.close()
 
         return json.loads(result)["access_token"]
 
