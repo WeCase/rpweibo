@@ -479,6 +479,10 @@ class ManualAutheticator():
         curl = _Curl()
         try:
             result = curl.post(self.ACCESS_TOKEN_URL, access_token_parameter)
+            status_code = curl.get_info(pycurl.RESPONSE_CODE)
+            if status_code != 200:
+                result_json = json.loads(result, object_hook=getable_dict)
+                raise AuthorizeFailed(result_json)
         except pycurl.error:
             raise NetworkError
         finally:
