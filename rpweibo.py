@@ -40,12 +40,14 @@ class _Curl(curl.Curl):
                 self.hdr += x.decode("ascii")
         self.set_option(pycurl.HEADERFUNCTION, header_callback)
 
+        ssl_library = pycurl.version_info()[5]
         # use the only one secure cipher that Sina supports
-        if "OpenSSL" in pycurl.version_info()[5]:
+        if "OpenSSL" in ssl_library or "LibreSSL" in ssl_library:
             self.set_option(pycurl.SSL_CIPHER_LIST, "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384")
-        else:
-            # Assume GnuTLS. what? You've built libcurl with NSS? Hum...
+        elif "GnuTLS".lower() in ssl_library.lower():  # not sure about the capitalization, use lower case
             self.set_option(pycurl.SSL_CIPHER_LIST, "PFS")
+        else:
+            raise NotImplemented("Unsupported SSL/TLS library (%s)!" % ssl_library)
 
     def __request(self, relative_url=None):
         super().__request(relative_url)
