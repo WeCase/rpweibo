@@ -42,7 +42,7 @@ class _Curl(curl.Curl):
 
         # use the only one secure cipher that Sina supports
         if "OpenSSL" in pycurl.version_info()[5]:
-            self.set_option(pycurl.SSL_CIPHER_LIST, "ECDHE-RSA-AES256-SHA")
+            self.set_option(pycurl.SSL_CIPHER_LIST, "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384")
         else:
             # Assume GnuTLS. what? You've built libcurl with NSS? Hum...
             self.set_option(pycurl.SSL_CIPHER_LIST, "PFS")
